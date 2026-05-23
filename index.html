@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Vagas — 3M Agropecuária</title>
+  <meta name="theme-color" content="#0d2b4e" />
+
+  <!-- ═══════════════════════════════════════════════════════
+       ALTERE APENAS ESTA URL com o link do seu Apps Script
+       ═══════════════════════════════════════════════════════ -->
+  <script>
+    const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyeW3h17yL8yC2PirK_mWFXwJBxNZ9wZmIau51y2v8Ci8rwD9FhKz-5mw3-y_ltJMlHlg/exec';
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --verde:        #1a5c3a;
+      --verde-claro:  #e8f5ee;
+      --verde-medio:  #2d8a55;
+      --azul-escuro:  #0d2b4e;
+      --azul-medio:   #1a3d6e;
+      --cinza-fundo:  #f4f4f2;
+      --cinza-borda:  #dededd;
+      --texto:        #1a1a1a;
+      --texto-sec:    #555;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--cinza-fundo);
+      color: var(--texto);
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    .app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--cinza-fundo); }
+
+    /* ── TOPO ── */
+    .topo {
+      background: var(--azul-escuro);
+      padding: 28px 24px 22px;
+      text-align: center;
+    }
+    .logo-3m   { font-size: 54px; font-weight: 900; color: #fff; letter-spacing: -3px; line-height: 1; }
+    .logo-tag  { background: var(--verde-medio); color: #fff; font-size: 11px; font-weight: 700;
+                 letter-spacing: 3px; padding: 4px 18px; display: inline-block; margin-top: 6px; border-radius: 2px; }
+    .topo-desc { color: rgba(255,255,255,0.72); font-size: 13px; margin-top: 14px; line-height: 1.55; }
+
+    .progress-wrap { background: rgba(255,255,255,0.18); height: 4px; margin-top: 18px; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--verde-medio); border-radius: 2px; transition: width .4s ease; }
+    .passo-txt     { font-size: 11px; color: rgba(255,255,255,0.55); text-align: center; margin-top: 6px; }
+
+    /* ── SEÇÕES ── */
+    .secao { display: none; padding: 22px 20px 110px; animation: fadeUp .3s ease; }
+    .secao.ativa { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .sec-titulo { font-size: 18px; font-weight: 700; color: var(--azul-escuro); margin-bottom: 4px; }
+    .sec-sub    { font-size: 13px; color: var(--verde-medio); font-weight: 600; margin-bottom: 20px; }
+
+    /* ── CARDS DE CIDADE ── */
+    .cidades-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .cidade-card {
+      background: #fff; border: 2px solid var(--cinza-borda);
+      border-radius: 14px; padding: 16px 18px;
+      cursor: pointer; user-select: none;
+      transition: border-color .2s, background .2s, transform .1s;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .cidade-card:active { transform: scale(.98); }
+    .cidade-card.ok { border-color: var(--verde-medio); background: var(--verde-claro); }
+    .cidade-icone { font-size: 26px; }
+    .cidade-info { flex: 1; }
+    .cidade-nome { font-size: 15px; font-weight: 700; color: var(--azul-escuro); }
+    .cidade-uf   { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
+    .cidade-check {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 2px solid var(--cinza-borda);
+      display: flex; align-items: center; justify-content: center;
+      color: transparent; font-weight: 800; font-size: 13px;
+      transition: all .2s;
+    }
+    .cidade-card.ok .cidade-check {
+      background: var(--verde-medio); border-color: var(--verde-medio); color: #fff;
+    }
+
+    /* ── CARDS DE VAGA ── */
+    .vagas-lista { display: flex; flex-direction: column; gap: 10px; }
+    .vaga-card {
+      background: #fff; border: 2px solid var(--cinza-borda);
+      border-radius: 12px; padding: 14px 16px;
+      cursor: pointer; user-select: none;
+      transition: border-color .2s, background .2s, transform .1s;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .vaga-card:active { transform: scale(.98); }
+    .vaga-card.ok { border-color: var(--verde-medio); background: var(--verde-claro); }
+    .vaga-emoji { font-size: 28px; min-width: 38px; text-align: center; }
+    .vaga-info { flex: 1; }
+    .vaga-nome { font-size: 14px; font-weight: 700; color: var(--azul-escuro); line-height: 1.3; }
+    .vaga-desc { font-size: 11px; color: var(--texto-sec); margin-top: 2px; }
+    .vaga-check {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--cinza-borda);
+      display: flex; align-items: center; justify-content: center;
+      color: transparent; font-weight: 800; font-size: 12px;
+      transition: all .2s;
+    }
+    .vaga-card.ok .vaga-check {
+      background: var(--verde-medio); border-color: var(--verde-medio); color: #fff;
+    }
+
+    /* ── CAMPOS ── */
+    .campo { margin-bottom: 16px; }
+    .campo label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--texto-sec); text-transform: uppercase;
+      letter-spacing: .6px; margin-bottom: 6px;
+    }
+    .campo label span { color: #c0392b; }
+    .campo input {
+      width: 100%; padding: 13px 14px;
+      border: 1.5px solid var(--cinza-borda); border-radius: 10px;
+      font-size: 15px; background: #fff; color: var(--texto);
+      font-family: inherit; appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .campo input:focus {
+      outline: none; border-color: var(--verde-medio);
+      box-shadow: 0 0 0 3px rgba(45,138,85,.12);
+    }
+
+    /* ── UPLOAD ── */
+    .upload-box {
+      border: 2px dashed var(--cinza-borda); border-radius: 12px;
+      padding: 24px 16px; text-align: center;
+      background: #fff; cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-box.tem { border-color: var(--verde-medio); background: var(--verde-claro); }
+    .upload-box input[type=file] { display: none; }
+    .upload-emoji { font-size: 32px; display: block; margin-bottom: 8px; }
+    .upload-hint { font-size: 14px; color: var(--texto-sec); }
+    .upload-hint strong { color: var(--verde-medio); }
+    .upload-nome { font-size: 13px; color: var(--verde-medio); font-weight: 700; margin-top: 8px; word-break: break-all; }
+    .upload-size { font-size: 11px; color: var(--texto-sec); margin-top: 2px; }
+
+    /* ── RESUMO ── */
+    .resumo-card { background: var(--verde-claro); border-radius: 12px; padding: 16px; margin-top: 14px; }
+    .resumo-titulo { font-size: 12px; font-weight: 700; color: var(--verde-medio); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+    .resumo-linha { font-size: 14px; color: var(--texto); line-height: 1.8; }
+    .resumo-linha strong { color: var(--azul-escuro); }
+
+    /* ── ALERTAS ── */
+    .alerta, .alerta-erro {
+      display: none; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 14px;
+    }
+    .alerta       { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
+    .alerta-erro  { background: #f8d7da; border: 1px solid #f5c2c7; color: #842029; }
+    .alerta.vis, .alerta-erro.vis { display: block; }
+
+    /* ── NAVEGAÇÃO ── */
+    .barra-nav {
+      position: fixed; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: #fff; border-top: 1px solid var(--cinza-borda);
+      padding: 12px 20px 22px; display: flex; gap: 10px; z-index: 200;
+    }
+    .btn { flex: 1; padding: 15px; border-radius: 12px; font-size: 15px; font-weight: 700;
+           cursor: pointer; border: none; font-family: inherit;
+           transition: opacity .15s, transform .1s; }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-prox { background: var(--azul-escuro); color: #fff; }
+    .btn-volt { background: var(--cinza-fundo); color: var(--texto); flex: 0 0 96px; }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(13,43,78,.78); z-index: 999;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+    }
+    .loading-overlay.vis { display: flex; }
+    .spinner { width: 48px; height: 48px;
+               border: 4px solid rgba(255,255,255,.3); border-top-color: #fff;
+               border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-txt { color: #fff; font-size: 15px; font-weight: 600; }
+
+    /* ── SUCESSO ── */
+    .sucesso-wrap { text-align: center; padding: 40px 24px 120px; }
+    .sucesso-circulo {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: var(--verde-claro);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; margin: 0 auto 20px;
+    }
+    .sucesso-titulo { font-size: 24px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 10px; }
+    .sucesso-desc   { font-size: 15px; color: var(--texto-sec); line-height: 1.65; }
+    .sucesso-tag {
+      display: inline-block; background: var(--verde-claro);
+      color: var(--verde-medio); font-size: 13px; font-weight: 700;
+      padding: 6px 18px; border-radius: 20px; margin: 16px 0;
+    }
+    .btn-novo {
+      display: block; width: 100%; padding: 15px;
+      background: var(--azul-escuro); color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 28px; font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPO -->
+  <div class="topo">
+    <div class="logo-3m">3M</div>
+    <div class="logo-tag">AGROPECUÁRIA</div>
+    <p class="topo-desc">Ficamos felizes com seu interesse!<br>Preencha com atenção para concorrer à vaga.</p>
+    <div class="progress-wrap"><div class="progress-fill" id="barra-prog" style="width:25%"></div></div>
+    <p class="passo-txt" id="passo-txt">Passo 1 de 4</p>
+  </div>
+
+  <!-- SEÇÃO 1 — CIDADE -->
+  <div class="secao ativa" id="sec1">
+    <p class="sec-titulo">Onde você quer trabalhar?</p>
+    <p class="sec-sub">Escolha a cidade ou região</p>
+    <div id="alerta1" class="alerta">Selecione uma cidade para continuar.</div>
+    <div class="cidades-grid" id="cidades-grid">
+      <!-- preenchido por JS -->
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2 — VAGAS DISPONÍVEIS PARA AQUELA CIDADE -->
+  <div class="secao" id="sec2">
+    <p class="sec-titulo">Qual vaga você busca?</p>
+    <p class="sec-sub" id="sub-vagas">Vagas disponíveis na sua cidade</p>
+    <div id="alerta2" class="alerta">Selecione uma vaga para continuar.</div>
+    <div class="vagas-lista" id="vagas-lista">
+      <!-- preenchido por JS -->
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3 — DADOS PESSOAIS -->
+  <div class="secao" id="sec3">
+    <p class="sec-titulo">Seus dados</p>
+    <p class="sec-sub" id="label-vaga">—</p>
+    <div id="alerta3" class="alerta">Preencha todos os campos obrigatórios (*).</div>
+    <div class="campo">
+      <label>Nome completo <span>*</span></label>
+      <input type="text" id="f-nome" placeholder="Seu nome completo" autocomplete="name" />
+    </div>
+    <div class="campo">
+      <label>WhatsApp <span>*</span></label>
+      <input type="tel" id="f-wpp" placeholder="(18) 99999-9999" autocomplete="tel" inputmode="tel" />
+    </div>
+    <div class="campo">
+      <label>E-mail</label>
+      <input type="email" id="f-email" placeholder="seu@email.com (opcional)" autocomplete="email" />
+    </div>
+  </div>
+
+  <!-- SEÇÃO 4 — CURRÍCULO -->
+  <div class="secao" id="sec4">
+    <p class="sec-titulo">Envie seu currículo</p>
+    <p class="sec-sub">PDF, Word ou foto (máx. 10 MB)</p>
+    <div id="alerta4" class="alerta">Selecione seu currículo antes de enviar.</div>
+    <div id="alerta-erro" class="alerta-erro">Erro ao enviar. Verifique sua internet e tente novamente.</div>
+
+    <div class="campo">
+      <label>Currículo <span>*</span></label>
+      <div class="upload-box" id="upload-box" onclick="document.getElementById('f-arquivo').click()">
+        <input type="file" id="f-arquivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="onArquivo(this)" />
+        <span class="upload-emoji">📎</span>
+        <p class="upload-hint"><strong>Toque aqui</strong> para escolher o arquivo</p>
+        <p class="upload-hint" style="font-size:12px;margin-top:4px;">PDF, Word ou foto do currículo</p>
+        <p class="upload-nome" id="nome-arquivo"></p>
+        <p class="upload-size" id="size-arquivo"></p>
+      </div>
+    </div>
+
+    <div class="resumo-card">
+      <p class="resumo-titulo">📋 Resumo da inscrição</p>
+      <p class="resumo-linha" id="resumo-txt">—</p>
+    </div>
+  </div>
+
+  <!-- SUCESSO -->
+  <div class="secao" id="sec-ok">
+    <div class="sucesso-wrap">
+      <div class="sucesso-circulo">✅</div>
+      <p class="sucesso-titulo">Inscrição enviada!</p>
+      <span class="sucesso-tag" id="tag-vaga-ok">—</span>
+      <p class="sucesso-desc">Recebemos seu currículo com sucesso.<br>Nossa equipe entrará em contato pelo <strong>WhatsApp</strong> em breve.</p>
+      <button class="btn-novo" onclick="reiniciar()">Fazer nova inscrição</button>
+    </div>
+  </div>
+
+  <!-- NAVEGAÇÃO -->
+  <div class="barra-nav" id="barra-nav">
+    <button class="btn btn-volt" id="btn-voltar" style="display:none" onclick="voltar()">← Voltar</button>
+    <button class="btn btn-prox" id="btn-prox" onclick="avancar()">Próximo →</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p class="loading-txt">Enviando inscrição...</p>
+  </div>
+
+</div>
+
+<script>
+  // ════════════════════════════════════════════════════════
+  // CONFIGURAÇÃO DE VAGAS E CIDADES
+  // ════════════════════════════════════════════════════════
+  const GRUPO_A = ['Presidente Venceslau', 'Piquerobi', 'Santo Anastácio'];
+  const GRUPO_B = ['Pirapozinho', 'Tarabai', 'Nova Pátria'];
+
+  const VAGAS = [
+    // Grupo A
+    { nome: 'Campeiro',                          desc: 'Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '🐄', grupo: 'A' },
+    { nome: 'Campeiro Rondas',                   desc: 'Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '🔦', grupo: 'A' },
+    { nome: 'Manejo Curral',                     desc: 'Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '🏠', grupo: 'A' },
+    { nome: 'Supervisor(a) de RH',               desc: 'Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '👔', grupo: 'A' },
+    { nome: 'Auxiliar Administrativo',           desc: 'Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '💼', grupo: 'A' },
+    // Grupo B
+    { nome: 'Op. Pá Carregadeira',               desc: 'Região: Pirapozinho / Tarabai / Nova Pátria',            emoji: '🚜', grupo: 'B' },
+    { nome: 'Vagão Misturador/Ração',            desc: 'Região: Pirapozinho / Tarabai / Nova Pátria',            emoji: '🚛', grupo: 'B' },
+    { nome: 'Trab. Rural Polivalente (Campeiro)',desc: 'Região: Pirapozinho / Tarabai / Nova Pátria',            emoji: '🌾', grupo: 'B' },
+    { nome: 'Trab. Rural Polivalente (ASG)',     desc: 'Auxiliar de Serviços Gerais — Pirapozinho / Tarabai / Nova Pátria', emoji: '🌿', grupo: 'B' },
+  ];
+
+  // ── Estado ────────────────────────────────────────────
+  let passo = 1;
+  const TOTAL = 4;
+  let cidadeSelecionada = '';
+  let grupoSelecionado  = '';
+  let vagaSelecionada   = '';
+  let arquivoBase64     = '';
+  let nomeArquivo       = '';
+
+  // ── Renderiza cards de cidade ───────────────────────────
+  function renderCidades() {
+    const cont = document.getElementById('cidades-grid');
+    cont.innerHTML = '';
+    const todas = [...GRUPO_A, ...GRUPO_B];
+    todas.forEach(cidade => {
+      const grupo = GRUPO_A.includes(cidade) ? 'A' : 'B';
+      const div = document.createElement('div');
+      div.className = 'cidade-card';
+      div.dataset.cidade = cidade;
+      div.dataset.grupo  = grupo;
+      div.onclick = () => escolherCidade(div);
+      div.innerHTML =
+        '<div class="cidade-icone">📍</div>' +
+        '<div class="cidade-info">' +
+          '<div class="cidade-nome">' + cidade + '</div>' +
+          '<div class="cidade-uf">SP</div>' +
+        '</div>' +
+        '<div class="cidade-check">✓</div>';
+      cont.appendChild(div);
+    });
+  }
+
+  function escolherCidade(el) {
+    document.querySelectorAll('.cidade-card').forEach(c => c.classList.remove('ok'));
+    el.classList.add('ok');
+    cidadeSelecionada = el.dataset.cidade;
+    grupoSelecionado  = el.dataset.grupo;
+    document.getElementById('alerta1').classList.remove('vis');
+  }
+
+  // ── Renderiza cards de vaga filtrados pela cidade ───────
+  function renderVagas() {
+    const cont = document.getElementById('vagas-lista');
+    cont.innerHTML = '';
+    document.getElementById('sub-vagas').textContent = 'Vagas disponíveis em ' + cidadeSelecionada;
+
+    const filtradas = VAGAS.filter(v => v.grupo === grupoSelecionado);
+    filtradas.forEach(v => {
+      const div = document.createElement('div');
+      div.className = 'vaga-card';
+      div.dataset.vaga = v.nome;
+      div.onclick = () => escolherVaga(div);
+      div.innerHTML =
+        '<div class="vaga-emoji">' + v.emoji + '</div>' +
+        '<div class="vaga-info">' +
+          '<div class="vaga-nome">' + v.nome + '</div>' +
+          '<div class="vaga-desc">' + v.desc + '</div>' +
+        '</div>' +
+        '<div class="vaga-check">✓</div>';
+      cont.appendChild(div);
+    });
+  }
+
+  function escolherVaga(el) {
+    document.querySelectorAll('.vaga-card').forEach(c => c.classList.remove('ok'));
+    el.classList.add('ok');
+    vagaSelecionada = el.dataset.vaga;
+    document.getElementById('alerta2').classList.remove('vis');
+  }
+
+  // ── Upload ─────────────────────────────────────────────
+  function onArquivo(input) {
+    if (!input.files || !input.files[0]) return;
+    const f = input.files[0];
+    if (f.size > 10 * 1024 * 1024) {
+      alert('Arquivo muito grande. O limite é 10 MB.');
+      input.value = '';
+      return;
+    }
+    nomeArquivo = f.name;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      arquivoBase64 = e.target.result;
+      document.getElementById('nome-arquivo').textContent = '✓ ' + f.name;
+      document.getElementById('size-arquivo').textContent = (f.size / 1024).toFixed(0) + ' KB';
+      document.getElementById('upload-box').classList.add('tem');
+      document.getElementById('alerta4').classList.remove('vis');
+    };
+    reader.readAsDataURL(f);
+  }
+
+  // ── Progresso ──────────────────────────────────────────
+  function atualizarBarra() {
+    const pct = Math.round((passo / TOTAL) * 100);
+    document.getElementById('barra-prog').style.width = pct + '%';
+    document.getElementById('passo-txt').textContent = 'Passo ' + passo + ' de ' + TOTAL;
+  }
+
+  function irPara(n) {
+    document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+    const id = n <= TOTAL ? 'sec' + n : 'sec-ok';
+    document.getElementById(id).classList.add('ativa');
+
+    document.getElementById('barra-nav').style.display = (n > TOTAL) ? 'none' : 'flex';
+    document.getElementById('btn-voltar').style.display = (n > 1) ? 'block' : 'none';
+    document.getElementById('btn-prox').textContent = (n === TOTAL) ? 'Enviar inscrição ✓' : 'Próximo →';
+
+    atualizarBarra();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Avançar ────────────────────────────────────────────
+  function avancar() {
+    if (passo === 1) {
+      if (!cidadeSelecionada) { document.getElementById('alerta1').classList.add('vis'); return; }
+      renderVagas();
+      passo = 2; irPara(2);
+      return;
+    }
+    if (passo === 2) {
+      if (!vagaSelecionada) { document.getElementById('alerta2').classList.add('vis'); return; }
+      document.getElementById('label-vaga').textContent = vagaSelecionada + ' • ' + cidadeSelecionada;
+      passo = 3; irPara(3);
+      return;
+    }
+    if (passo === 3) {
+      const nome = document.getElementById('f-nome').value.trim();
+      const wpp  = document.getElementById('f-wpp').value.trim();
+      if (!nome || !wpp) { document.getElementById('alerta3').classList.add('vis'); return; }
+      document.getElementById('alerta3').classList.remove('vis');
+
+      const email = document.getElementById('f-email').value.trim();
+      document.getElementById('resumo-txt').innerHTML =
+        '<strong>Cidade:</strong> ' + cidadeSelecionada + '<br>' +
+        '<strong>Vaga:</strong> '   + vagaSelecionada + '<br>' +
+        '<strong>Nome:</strong> '   + nome + '<br>' +
+        '<strong>WhatsApp:</strong> ' + wpp +
+        (email ? '<br><strong>E-mail:</strong> ' + email : '');
+      passo = 4; irPara(4);
+      return;
+    }
+    if (passo === 4) {
+      if (!arquivoBase64) { document.getElementById('alerta4').classList.add('vis'); return; }
+      enviarInscricao();
+    }
+  }
+
+  function voltar() {
+    if (passo > 1) { passo--; irPara(passo); }
+  }
+
+  // ── Envio para Apps Script ─────────────────────────────
+  async function enviarInscricao() {
+    document.getElementById('loading').classList.add('vis');
+    document.getElementById('alerta-erro').classList.remove('vis');
+    document.getElementById('btn-prox').disabled = true;
+
+    const dados = {
+      vaga:        vagaSelecionada,
+      cidade:      cidadeSelecionada,
+      nome:        document.getElementById('f-nome').value.trim(),
+      whatsapp:    document.getElementById('f-wpp').value.trim(),
+      email:       document.getElementById('f-email').value.trim(),
+      curriculo:   arquivoBase64,
+      nomeArquivo: nomeArquivo
+    };
+
+    try {
+      // Codifica os dados em Base64 e envia via GET (resolve CORS do Apps Script)
+      const payloadB64 = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
+      const url = URL_APPS_SCRIPT + '?payload=' + encodeURIComponent(payloadB64);
+
+      const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+      const json = await resp.json();
+
+      if (json.status === 'ok') {
+        document.getElementById('tag-vaga-ok').textContent = vagaSelecionada + ' • ' + cidadeSelecionada;
+        passo = 5; irPara(5);
+      } else {
+        throw new Error(json.mensagem || 'Erro desconhecido');
+      }
+    } catch (err) {
+      const alerta = document.getElementById('alerta-erro');
+      alerta.classList.add('vis');
+      alerta.textContent = 'Erro ao enviar: ' + err.message + '. Verifique sua internet e tente novamente.';
+    } finally {
+      document.getElementById('loading').classList.remove('vis');
+      document.getElementById('btn-prox').disabled = false;
+    }
+  }
+
+  // ── Reiniciar ──────────────────────────────────────────
+  function reiniciar() {
+    passo = 1;
+    cidadeSelecionada = ''; grupoSelecionado = '';
+    vagaSelecionada = ''; arquivoBase64 = ''; nomeArquivo = '';
+    document.querySelectorAll('.cidade-card').forEach(c => c.classList.remove('ok'));
+    ['f-nome','f-wpp','f-email'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-arquivo').value = '';
+    document.getElementById('nome-arquivo').textContent = '';
+    document.getElementById('size-arquivo').textContent = '';
+    document.getElementById('upload-box').classList.remove('tem');
+    irPara(1);
+  }
+
+  // ── Inicialização ──────────────────────────────────────
+  renderCidades();
+</script>
+</body>
+</html>
