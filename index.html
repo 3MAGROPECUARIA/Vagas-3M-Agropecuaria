@@ -272,7 +272,7 @@
   <!-- SEÇÃO 4 — CURRÍCULO -->
   <div class="secao" id="sec4">
     <p class="sec-titulo">Envie seu currículo</p>
-    <p class="sec-sub">PDF, Word ou foto (máx. 10 MB)</p>
+    <p class="sec-sub">PDF, Word ou foto (máx. 50 MB)</p>
     <div id="alerta4" class="alerta">Selecione seu currículo antes de enviar.</div>
     <div id="alerta-erro" class="alerta-erro">Erro ao enviar. Verifique sua internet e tente novamente.</div>
 
@@ -414,8 +414,8 @@
   function onArquivo(input) {
     if (!input.files || !input.files[0]) return;
     const f = input.files[0];
-    if (f.size > 10 * 1024 * 1024) {
-      alert('Arquivo muito grande. O limite é 10 MB.');
+    if (f.size > 50 * 1024 * 1024) {
+      alert('Arquivo muito grande. O limite é 50 MB.');
       input.value = '';
       return;
     }
