@@ -491,7 +491,10 @@
     if (passo > 1) { passo--; irPara(passo); }
   }
 
-  // ── Envio para Apps Script (CORS-safe) ─────────────────
+  // ── Envio via FORM oculto + IFRAME (imune a CORS) ──────
+  // Esta estrategia funciona porque navegadores nao bloqueiam
+  // submissao de form HTML para outro dominio (a barreira CORS
+  // so existe para fetch/XHR).
   async function enviarInscricao() {
     document.getElementById('loading').classList.add('vis');
     document.getElementById('alerta-erro').classList.remove('vis');
@@ -507,46 +510,75 @@
       nomeArquivo: nomeArquivo
     };
 
-    // ESTRATÉGIA 1: POST com Content-Type text/plain (evita preflight CORS)
     try {
-      const resp = await fetch(URL_APPS_SCRIPT, {
-        method: 'POST',
-        mode: 'cors',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(dados)
-      });
-      const txt = await resp.text();
-      let json;
-      try { json = JSON.parse(txt); }
-      catch(e) { json = { status: 'ok' }; }
-
-      if (json.status === 'ok') {
-        finalizarOK();
-        return;
-      }
-      throw new Error(json.mensagem || 'Erro desconhecido');
+      await enviarPorForm(dados);
+      finalizarOK();
     } catch (err) {
-      console.warn('POST cors falhou:', err.message, '— tentando no-cors');
-
-      // ESTRATÉGIA 2 (fallback): POST no-cors. Não lê resposta, mas envia.
-      try {
-        await fetch(URL_APPS_SCRIPT, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(dados)
-        });
-        finalizarOK();
-        return;
-      } catch (err2) {
-        document.getElementById('loading').classList.remove('vis');
-        document.getElementById('btn-prox').disabled = false;
-        const alerta = document.getElementById('alerta-erro');
-        alerta.classList.add('vis');
-        alerta.textContent = 'Erro ao enviar: ' + err2.message + '. Verifique sua internet.';
-      }
+      console.error('Falha total no envio:', err);
+      document.getElementById('loading').classList.remove('vis');
+      document.getElementById('btn-prox').disabled = false;
+      const alerta = document.getElementById('alerta-erro');
+      alerta.classList.add('vis');
+      alerta.textContent = 'Erro ao enviar: ' + err.message + '. Verifique sua internet.';
     }
+  }
+
+  // Funcao que envia dados via FORM POST para um iframe oculto
+  function enviarPorForm(dados) {
+    return new Promise((resolve, reject) => {
+      // 1) Cria iframe oculto para receber a resposta
+      const iframeId = 'iframe-envio-' + Date.now();
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeId;
+      iframe.id = iframeId;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      // 2) Cria form que aponta para o iframe
+      const form = document.createElement('form');
+      form.action = URL_APPS_SCRIPT;
+      form.method = 'POST';
+      form.target = iframeId;
+      form.enctype = 'application/x-www-form-urlencoded';
+      form.style.display = 'none';
+
+      // 3) Adiciona os dados como campo "dados" (JSON string)
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'dados';
+      input.value = JSON.stringify(dados);
+      form.appendChild(input);
+
+      document.body.appendChild(form);
+
+      // 4) Configura timeout (35s para uploads de PDF maiores)
+      const timeout = setTimeout(() => {
+        try { document.body.removeChild(form); } catch(e){}
+        try { document.body.removeChild(iframe); } catch(e){}
+        reject(new Error('Tempo limite excedido (35s)'));
+      }, 35000);
+
+      // 5) Quando iframe carregar = resposta recebida = sucesso
+      iframe.onload = function() {
+        clearTimeout(timeout);
+        // Pequeno delay para garantir que o servidor processou
+        setTimeout(() => {
+          try { document.body.removeChild(form); } catch(e){}
+          try { document.body.removeChild(iframe); } catch(e){}
+          resolve();
+        }, 800);
+      };
+
+      iframe.onerror = function() {
+        clearTimeout(timeout);
+        try { document.body.removeChild(form); } catch(e){}
+        try { document.body.removeChild(iframe); } catch(e){}
+        reject(new Error('Falha na rede'));
+      };
+
+      // 6) Envia
+      form.submit();
+    });
   }
 
   function finalizarOK() {
