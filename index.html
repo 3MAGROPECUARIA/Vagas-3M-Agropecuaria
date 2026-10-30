@@ -328,9 +328,10 @@
 
   const VAGAS = [
     // Grupo A
-    { nome: 'Auxiliar administrativo',    desc: 'Auxiliar administrativo; Região: Pres. Venceslau / Piquerobi / Santo Anastácio', emoji: '💼', grupo: 'A' },
+    // (sem vagas no momento)
     // Grupo B
     { nome: 'Trabalhador Operacional de Confinamento',     desc: 'Operar trator/caminhão com vagão; — Pirapozinho / Tarabai / Nova Pátria', emoji: '🚜', grupo: 'B' },
+    { nome: 'Trabalhador Rural Polivalente', desc: 'Atividades gerais da fazenda; Região: Pirapozinho / Tarabai / Nova Pátria', emoji: '🌾', grupo: 'B' },
   ];
 
   // ── Estado ────────────────────────────────────────────
@@ -380,6 +381,10 @@
     document.getElementById('sub-vagas').textContent = 'Vagas disponíveis em ' + cidadeSelecionada;
 
     const filtradas = VAGAS.filter(v => v.grupo === grupoSelecionado);
+    if (filtradas.length === 0) {
+      cont.innerHTML = '<p class="sec-sub">Nenhuma vaga aberta nesta cidade no momento.</p>';
+      return;
+    }
     filtradas.forEach(v => {
       const div = document.createElement('div');
       div.className = 'vaga-card';
